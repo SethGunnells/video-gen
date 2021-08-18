@@ -3,7 +3,9 @@ import { interpolate, useCurrentFrame, useVideoConfig, Easing } from 'remotion'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { nord } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 
-const Code = ({ children, opacity }) => (
+const Code: React.FC<{
+  opacity: number
+}> = ({ children, opacity }) => (
   <SyntaxHighlighter language="javascript" style={nord} customStyle={{ background: 'none', fontSize: 40, margin: 0, padding: 0, opacity }}>
     {children}
   </SyntaxHighlighter>
@@ -20,7 +22,7 @@ const getOpacity = (frame: number, start: number) => interpolate(
   }
 )
 
-const offsetInterpolate = (frame, start: number, old: number, current: number) => interpolate(
+const offsetInterpolate = (frame: number, start: number, old: number, current: number) => interpolate(
   frame,
   [start, start + 30],
   [old / 2, current / 2],
@@ -36,7 +38,7 @@ const getPreviousStep = (frame: number) => {
   return 100
 }
 
-const getText = (frame: number, opacity?: number) => {
+const getText = (frame: number) => {
   const text = [
     <Code opacity={getOpacity(frame, 0)}>
       {"const foo = 'a string'\nconst fn = () => null"}
@@ -72,7 +74,7 @@ const Reference: React.FC<{
       opacity: 0,
       width: vw - margin * 2
     }}>
-      {getText(getPreviousStep(frame), 1)}
+      {getText(getPreviousStep(frame))}
     </div>
   )
 }
@@ -99,7 +101,7 @@ const Text: React.FC<{
   )
 }
 
-const SethGunells: React.FC = () => {
+const Test: React.FC = () => {
   const frame = useCurrentFrame()
   const { height: vh, width: vw } = useVideoConfig()
 
@@ -127,5 +129,5 @@ const SethGunells: React.FC = () => {
   )
 }
 
-export default SethGunells
+export default Test
 
