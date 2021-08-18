@@ -3,6 +3,8 @@ import { interpolate, useCurrentFrame, useVideoConfig, Easing } from 'remotion'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { nord } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 
+import './styles.css'
+
 const Code: React.FC<{
   opacity: number
 }> = ({ children, opacity }) => (

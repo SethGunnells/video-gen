@@ -1,0 +1,8 @@
+@font-face {
+  font-family: 'Fantasque Sans Mono';
+  src: url('/Users/seth.gunnells/Library/Fonts/Fantasque Sans Mono Regular Nerd Font Complete.ttf')
+}
+
+pre, code, pre *, code * {
+  font-family: 'Fantasque Sans Mono';
+}
