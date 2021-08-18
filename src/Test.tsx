@@ -1,68 +1,15 @@
 import React, { useRef } from 'react'
 import { interpolate, useCurrentFrame, useVideoConfig, Easing } from 'remotion'
-import SyntaxHighlighter from 'react-syntax-highlighter'
-import { nord } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 
 import './styles.css'
 
-const Code: React.FC<{
-  opacity: number
-}> = ({ children, opacity }) => (
-  <SyntaxHighlighter language="javascript" style={nord} customStyle={{ background: 'none', fontSize: 40, margin: 0, padding: 0, opacity }}>
-    {children}
-  </SyntaxHighlighter>
-)
+import { getReferenceText, getText, getTopOffset, CodeScene } from './codeSceneUtils'
 
-const getOpacity = (frame: number, start: number) => interpolate(
-  frame,
-  start === 0 ? [0, 30] : [0, start, start + 30],
-  start === 0 ? [0, 1] : [1, 0, 1],
-  {
-    easing: Easing.inOut(Easing.ease),
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp'
-  }
-)
-
-const offsetInterpolate = (frame: number, start: number, old: number, current: number) => interpolate(
-  frame,
-  [start, start + 30],
-  [old / 2, current / 2],
-  {
-    easing: Easing.inOut(Easing.ease),
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp'
-  }
-)
-
-const getPreviousStep = (frame: number) => {
-  if (frame <= 130) return 0
-  return 100
-}
-
-const getText = (frame: number) => {
-  const text = [
-    <Code opacity={getOpacity(frame, 0)}>
-      {"const foo = 'a string'\nconst fn = () => null"}
-    </Code>
-  ]
-
-  if (frame >= 100) {
-    text.push(<Code opacity={getOpacity(frame, 100)}>{"\nconst bar = 101"}</Code>)
-  }
-
-  if (frame >= 200) {
-    text.push(<Code opacity={getOpacity(frame, 200)}>{"const baz = false"}</Code>)
-  }
-
-  return text
-}
-
-const getTopOffset = (frame: number, old: number, current: number) => {
-  if (frame >= 100 && frame < 200) return offsetInterpolate(frame, 100, old, current)
-  if (frame >= 200 && frame <= 230) return offsetInterpolate(frame, 200, old, current)
-  return current / 2
-}
+const scenes: CodeScene[] = [
+  { frame: 0, transitionSpeed: 30, code: "const foo = 'a string'\nconst fn = () => null" },
+  { frame: 100, transitionSpeed: 30, code: "\nconst bar = 101" },
+  { frame: 200, transitionSpeed: 30, code: "const baz = false" }
+]
 
 const Reference: React.FC<{
   frame: number,
@@ -76,7 +23,7 @@ const Reference: React.FC<{
       opacity: 0,
       width: vw - margin * 2
     }}>
-      {getText(getPreviousStep(frame))}
+      {getReferenceText(scenes, frame)}
     </div>
   )
 }
@@ -90,7 +37,7 @@ const Text: React.FC<{
 }> = ({ frame, margin, oldHeight, vh, vw }) => {
   const ref: React.MutableRefObject<HTMLDivElement|null> = useRef(null)
   const currentHeight = ref.current?.offsetHeight || -1
-  const top = (vh / 2) - getTopOffset(frame, oldHeight, currentHeight)
+  const top = (vh / 2) - getTopOffset(scenes, frame, currentHeight, oldHeight)
   return (
     <div ref={ref} style={{
       position: 'absolute',
@@ -98,7 +45,7 @@ const Text: React.FC<{
       left: margin,
       width: vw - margin * 2
     }}>
-      {getText(frame)}
+      {getText(scenes, frame)}
     </div>
   )
 }
