@@ -56,25 +56,30 @@ const Text: React.FC<{
     padding
   );
 
+  const scale =
+    interpolate(frame, [start, end], [past.fontSize, fontSize], {
+      easing: Easing.inOut(Easing.ease),
+      extrapolateLeft: 'clamp',
+      extrapolateRight: 'clamp'
+    }) / 100;
+  const x = interpolate(frame, [start, end], [past.left, left], {
+    easing: Easing.inOut(Easing.ease),
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp'
+  });
+  const y = interpolate(frame, [start, end], [past.top, top], {
+    easing: Easing.inOut(Easing.ease),
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp'
+  });
+
   return (
     <div
       style={{
-        fontSize: interpolate(frame, [start, end], [past.fontSize, fontSize], {
-          easing: Easing.inOut(Easing.ease),
-          extrapolateLeft: 'clamp',
-          extrapolateRight: 'clamp'
-        }),
+        fontSize: 100,
         position: 'absolute',
-        left: interpolate(frame, [start, end], [past.left, left], {
-          easing: Easing.inOut(Easing.ease),
-          extrapolateLeft: 'clamp',
-          extrapolateRight: 'clamp'
-        }),
-        top: interpolate(frame, [start, end], [past.top, top], {
-          easing: Easing.inOut(Easing.ease),
-          extrapolateLeft: 'clamp',
-          extrapolateRight: 'clamp'
-        })
+        transformOrigin: 'top left',
+        transform: `translate(${x}px, ${y}px) scale(${scale})`
       }}
     >
       {getText(scenes, frame)}

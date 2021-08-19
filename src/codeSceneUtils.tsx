@@ -22,15 +22,15 @@ export const createFontSizeMap = () => {
   document.body.appendChild(div);
 
   if (Object.keys(FONT_SIZE_MAP).length > 0) {
-    div.style.fontSize = '200px';
-    const px200 = FONT_SIZE_MAP[200];
-    if (div.offsetHeight === px200.h && div.offsetWidth === px200.w) {
+    div.style.fontSize = '100px';
+    const px100 = FONT_SIZE_MAP[100];
+    if (div.offsetHeight === px100.h && div.offsetWidth === px100.w) {
       document.body.removeChild(div);
       return;
     }
   }
 
-  for (let px = 10; px <= 200; px++) {
+  for (let px = 10; px <= 100; px++) {
     div.style.fontSize = `${px}px`;
     FONT_SIZE_MAP[px] = { h: div.offsetHeight, w: div.offsetWidth };
   }
