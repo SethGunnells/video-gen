@@ -9,7 +9,6 @@ const Code: React.FC<{
     style={nord}
     customStyle={{
       background: 'none',
-      fontSize: 80,
       margin: 0,
       padding: 0,
       opacity

@@ -1,82 +1,98 @@
-import React, { useRef } from 'react'
-import { interpolate, useCurrentFrame, useVideoConfig, Easing } from 'remotion'
+import React from 'react';
+import { interpolate, useCurrentFrame, useVideoConfig, Easing } from 'remotion';
 
-import './styles.css'
+import './styles.css';
 
-import { getReferenceText, getText, getTopOffset, CodeScene } from './codeSceneUtils'
+import {
+  getSceneDimensions,
+  getShownScenes,
+  getText,
+  CodeScene
+} from './codeSceneUtils';
 
 const scenes: CodeScene[] = [
-  { frame: 0, transitionSpeed: 30, code: "const foo = 'a string'\nconst fn = () => null" },
-  { frame: 100, transitionSpeed: 30, code: "\nconst bar = 101" },
-  { frame: 200, transitionSpeed: 30, code: "const baz = false" }
-]
-
-const Reference: React.FC<{
-  frame: number,
-  margin: number,
-  innerRef: React.MutableRefObject<HTMLDivElement|null>,
-  vw: number
-}> = ({ frame, margin, innerRef, vw }) => {
-  return (
-    <div ref={innerRef} style={{
-      position: 'absolute',
-      opacity: 0,
-      width: vw - margin * 2
-    }}>
-      {getReferenceText(scenes, frame)}
-    </div>
-  )
-}
+  {
+    frame: 0,
+    transitionSpeed: 30,
+    code: "import _ from 'lodash'"
+  },
+  {
+    frame: 100,
+    transitionSpeed: 50,
+    code: `
+const character = {
+  name: 'Seth',
+  race: 'Elf',
+  stats: {
+    strength: 10,
+    intelligence: 18,
+    charisma: 12
+  }
+}`
+  },
+  {
+    frame: 200,
+    transitionSpeed: 30,
+    code: `
+_.get(character, 'stats.strength')`
+  }
+];
 
 const Text: React.FC<{
-  frame: number,
-  margin: number,
-  oldHeight: number,
-  vh: number,
-  vw: number
-}> = ({ frame, margin, oldHeight, vh, vw }) => {
-  const ref: React.MutableRefObject<HTMLDivElement|null> = useRef(null)
-  const currentHeight = ref.current?.offsetHeight || -1
-  const top = (vh / 2) - getTopOffset(scenes, frame, currentHeight, oldHeight)
+  frame: number;
+  padding: number;
+}> = ({ frame, padding }) => {
+  const { height, width } = useVideoConfig();
+  const shownScenes = getShownScenes(scenes, frame);
+  const { frame: start, transitionSpeed } = shownScenes[shownScenes.length - 1];
+  const end = start + transitionSpeed;
+  const pastScenes =
+    shownScenes.length === 1 ? shownScenes : shownScenes.slice(0, -1);
+  const past = getSceneDimensions(pastScenes, height, width, padding);
+  const { fontSize, left, top } = getSceneDimensions(
+    shownScenes,
+    height,
+    width,
+    padding
+  );
+
   return (
-    <div ref={ref} style={{
-      position: 'absolute',
-      top, 
-      left: margin,
-      width: vw - margin * 2
-    }}>
+    <div
+      style={{
+        fontSize: interpolate(frame, [start, end], [past.fontSize, fontSize], {
+          easing: Easing.inOut(Easing.ease),
+          extrapolateLeft: 'clamp',
+          extrapolateRight: 'clamp'
+        }),
+        position: 'absolute',
+        left: interpolate(frame, [start, end], [past.left, left], {
+          easing: Easing.inOut(Easing.ease),
+          extrapolateLeft: 'clamp',
+          extrapolateRight: 'clamp'
+        }),
+        top: interpolate(frame, [start, end], [past.top, top], {
+          easing: Easing.inOut(Easing.ease),
+          extrapolateLeft: 'clamp',
+          extrapolateRight: 'clamp'
+        })
+      }}
+    >
       {getText(scenes, frame)}
     </div>
-  )
-}
+  );
+};
 
 const Test: React.FC = () => {
-  const frame = useCurrentFrame()
-  const { height: vh, width: vw } = useVideoConfig()
+  const frame = useCurrentFrame();
+  const { height } = useVideoConfig();
 
-  const ref: React.MutableRefObject<HTMLDivElement|null> = useRef(null)
-  const oldHeight = ref.current?.offsetHeight || -1
-
-  const margin = vh / 10
+  const padding = height / 8;
 
   return (
     <div style={{ flex: 1, backgroundColor: '#2e3440' }}>
-      <Reference
-        frame={frame}
-        margin={margin}
-        innerRef={ref}
-        vw={vw}
-      />
-      <Text
-        frame={frame}
-        margin={margin}
-        oldHeight={oldHeight}
-        vh={vh}
-        vw={vw}
-      />
+      <Text frame={frame} padding={padding} />
     </div>
-  )
-}
+  );
+};
 
-export default Test
-
+export default Test;
