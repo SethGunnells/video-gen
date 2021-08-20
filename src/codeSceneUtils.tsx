@@ -13,7 +13,7 @@ export interface CodeScene {
 
 const FONT_SIZE_MAP: { [key: number]: { h: number; w: number } } = {};
 
-export const createFontSizeMap = () => {
+const createFontSizeMap = () => {
   const div = document.createElement('div');
   div.style.fontFamily = 'Fantasque Sans Mono';
   div.style.position = 'absolute';
@@ -36,43 +36,6 @@ export const createFontSizeMap = () => {
   }
 
   document.body.removeChild(div);
-  console.log(FONT_SIZE_MAP);
-};
-
-const getCurrentScene = (scenes: CodeScene[], frame: number): CodeScene =>
-  scenes.reduce((result, scene) => (scene.frame <= frame ? scene : result));
-
-const getCurrentSceneIndex = (scenes: CodeScene[], frame: number): number =>
-  scenes.reduce(
-    (result, scene, i) => (scene.frame <= frame || result < 0 ? i : result),
-    -1
-  );
-
-export const getFutureText = (scenes: CodeScene[], frame: number) => {
-  const i = getCurrentSceneIndex(scenes, frame);
-  const text = getText(scenes, frame);
-  if (i === scenes.length - 1) return text;
-  const nextScene = scenes[i + 1];
-  return (
-    <>
-      {text}
-      <Code opacity={1}>{nextScene.code}</Code>
-    </>
-  );
-};
-
-export const getReferenceText = (
-  scenes: CodeScene[],
-  frame: number
-): ReactNode => {
-  const allShownScenes = scenes.filter(scene => scene.frame <= frame);
-  const scenesForText =
-    allShownScenes.length === 1
-      ? allShownScenes
-      : allShownScenes.filter(
-          scene => frame > scene.frame + scene.transitionSpeed
-        );
-  return scenesForText.map(scene => <Code opacity={1}>{scene.code}</Code>);
 };
 
 const getOpacity = (scene: CodeScene, frame: number) =>
@@ -88,6 +51,34 @@ const getOpacity = (scene: CodeScene, frame: number) =>
       extrapolateRight: 'clamp'
     }
   );
+
+export const getAnimatedDimensions = (
+  scenes: CodeScene[],
+  frame: number,
+  height: number,
+  width: number,
+  padding: number
+) => {
+  const shown = getShownScenes(scenes, frame);
+  const { frame: start, transitionSpeed } = shown[shown.length - 1];
+  const end = start + transitionSpeed;
+  const pastScenes = shown.length === 1 ? shown : shown.slice(0, -1);
+  const past = getSceneDimensions(pastScenes, height, width, padding);
+  const now = getSceneDimensions(shown, height, width, padding);
+
+  const int = (prop: 'scale' | 'x' | 'y') =>
+    interpolate(frame, [start, end], [past[prop], now[prop]], {
+      easing: inOut(ease),
+      extrapolateLeft: 'clamp',
+      extrapolateRight: 'clamp'
+    });
+
+  return {
+    scale: int('scale'),
+    x: int('x'),
+    y: int('y')
+  };
+};
 
 const getRawCodeLines = (scenes: CodeScene[]): string[] =>
   scenes.reduce<string[]>(
@@ -109,7 +100,7 @@ const calculateDimensions = (
   const calcH = () => FONT_SIZE_MAP[px].h * lines.length;
   const calcW = () => FONT_SIZE_MAP[px].w * widestLineLength;
   while (calcH() > maxHeight || calcW() > maxWidth) px--;
-  return { fontSize: px, height: calcH(), width: calcW() };
+  return { scale: px / 100, height: calcH(), width: calcW() };
 };
 
 const calculatePosition = (
@@ -119,8 +110,8 @@ const calculatePosition = (
   elemWidth: number
 ) => {
   return {
-    left: viewWidth / 2 - elemWidth / 2,
-    top: viewHeight / 2 - elemHeight / 2
+    x: viewWidth / 2 - elemWidth / 2,
+    y: viewHeight / 2 - elemHeight / 2
   };
 };
 
@@ -132,42 +123,19 @@ export const getSceneDimensions = (
 ) => {
   createFontSizeMap();
   const codeLines = getRawCodeLines(scenes);
-  const { fontSize, ...elem } = calculateDimensions(
+  const { scale, ...elem } = calculateDimensions(
     height - padding * 2,
     width - padding * 2,
     codeLines
   );
   const position = calculatePosition(height, width, elem.height, elem.width);
-  return { fontSize, ...position };
+  return { scale, ...position };
 };
 
 export const getShownScenes = (scenes: CodeScene[], frame: number) =>
   scenes.filter(scene => scene.frame <= frame);
 
 export const getText = (scenes: CodeScene[], frame: number): ReactNode =>
-  scenes.reduce<ReactNode[]>((result, scene) => {
-    if (scene.frame <= frame)
-      result.push(<Code opacity={getOpacity(scene, frame)}>{scene.code}</Code>);
-    return result;
-  }, []);
-
-export const getTopOffset = (
-  scenes: CodeScene[],
-  frame: number,
-  currentHeight: number,
-  oldHeight: number
-) => {
-  const scene = getCurrentScene(scenes, frame);
-  const startFrame = scene.frame;
-  const endFrame = startFrame + scene.transitionSpeed;
-  return interpolate(
-    frame,
-    [startFrame, endFrame],
-    [oldHeight / 2, currentHeight / 2],
-    {
-      easing: Easing.inOut(Easing.ease),
-      extrapolateLeft: 'clamp',
-      extrapolateRight: 'clamp'
-    }
-  );
-};
+  getShownScenes(scenes, frame).map(scene => (
+    <Code opacity={getOpacity(scene, frame)}>{scene.code}</Code>
+  ));

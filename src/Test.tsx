@@ -4,6 +4,7 @@ import { interpolate, useCurrentFrame, useVideoConfig, Easing } from 'remotion';
 import './styles.css';
 
 import {
+  getAnimatedDimensions,
   getSceneDimensions,
   getShownScenes,
   getText,
@@ -43,35 +44,13 @@ const Text: React.FC<{
   padding: number;
 }> = ({ frame, padding }) => {
   const { height, width } = useVideoConfig();
-  const shownScenes = getShownScenes(scenes, frame);
-  const { frame: start, transitionSpeed } = shownScenes[shownScenes.length - 1];
-  const end = start + transitionSpeed;
-  const pastScenes =
-    shownScenes.length === 1 ? shownScenes : shownScenes.slice(0, -1);
-  const past = getSceneDimensions(pastScenes, height, width, padding);
-  const { fontSize, left, top } = getSceneDimensions(
-    shownScenes,
+  const { scale, x, y } = getAnimatedDimensions(
+    scenes,
+    frame,
     height,
     width,
     padding
   );
-
-  const scale =
-    interpolate(frame, [start, end], [past.fontSize, fontSize], {
-      easing: Easing.inOut(Easing.ease),
-      extrapolateLeft: 'clamp',
-      extrapolateRight: 'clamp'
-    }) / 100;
-  const x = interpolate(frame, [start, end], [past.left, left], {
-    easing: Easing.inOut(Easing.ease),
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp'
-  });
-  const y = interpolate(frame, [start, end], [past.top, top], {
-    easing: Easing.inOut(Easing.ease),
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp'
-  });
 
   return (
     <div
