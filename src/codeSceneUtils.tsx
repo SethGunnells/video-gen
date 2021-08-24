@@ -1,16 +1,3 @@
-import { ReactNode } from 'react';
-import { interpolate, Easing } from 'remotion';
-
-import Code from './Code';
-
-const { ease, inOut } = Easing;
-
-export interface CodeScene {
-  code: string;
-  frame: number;
-  transitionSpeed: number;
-}
-
 const FONT_SIZE_MAP: { [key: number]: { h: number; w: number } } = {};
 
 const createFontSizeMap = () => {
@@ -37,54 +24,6 @@ const createFontSizeMap = () => {
 
   document.body.removeChild(div);
 };
-
-const getOpacity = (scene: CodeScene, frame: number) =>
-  interpolate(
-    frame,
-    scene.frame === 0
-      ? [0, 30]
-      : [0, scene.frame, scene.frame + scene.transitionSpeed],
-    scene.frame === 0 ? [0, 1] : [1, 0, 1],
-    {
-      easing: inOut(ease),
-      extrapolateLeft: 'clamp',
-      extrapolateRight: 'clamp'
-    }
-  );
-
-export const getAnimatedDimensions = (
-  scenes: CodeScene[],
-  frame: number,
-  height: number,
-  width: number,
-  padding: number
-) => {
-  const shown = getShownScenes(scenes, frame);
-  const { frame: start, transitionSpeed } = shown[shown.length - 1];
-  const end = start + transitionSpeed;
-  const pastScenes = shown.length === 1 ? shown : shown.slice(0, -1);
-  const past = getSceneDimensions(pastScenes, height, width, padding);
-  const now = getSceneDimensions(shown, height, width, padding);
-
-  const int = (prop: 'scale' | 'x' | 'y') =>
-    interpolate(frame, [start, end], [past[prop], now[prop]], {
-      easing: inOut(ease),
-      extrapolateLeft: 'clamp',
-      extrapolateRight: 'clamp'
-    });
-
-  return {
-    scale: int('scale'),
-    x: int('x'),
-    y: int('y')
-  };
-};
-
-const getRawCodeLines = (scenes: CodeScene[]): string[] =>
-  scenes.reduce<string[]>(
-    (result, scene) => result.concat(scene.code.split('\n')),
-    []
-  );
 
 const calculateDimensions = (
   maxHeight: number,
@@ -116,13 +55,13 @@ const calculatePosition = (
 };
 
 export const getSceneDimensions = (
-  scenes: CodeScene[],
+  code: string,
   height: number,
   width: number,
   padding: number
 ) => {
   createFontSizeMap();
-  const codeLines = getRawCodeLines(scenes);
+  const codeLines = code.split('\n');
   const { scale, ...elem } = calculateDimensions(
     height - padding * 2,
     width - padding * 2,
@@ -131,11 +70,3 @@ export const getSceneDimensions = (
   const position = calculatePosition(height, width, elem.height, elem.width);
   return { scale, ...position };
 };
-
-export const getShownScenes = (scenes: CodeScene[], frame: number) =>
-  scenes.filter(scene => scene.frame <= frame);
-
-export const getText = (scenes: CodeScene[], frame: number): ReactNode =>
-  getShownScenes(scenes, frame).map(scene => (
-    <Code opacity={getOpacity(scene, frame)}>{scene.code}</Code>
-  ));

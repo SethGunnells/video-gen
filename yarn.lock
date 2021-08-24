@@ -308,6 +308,11 @@
     serve-handler "^6.1.3"
     xns "^2.0.7"
 
+"@sethgunnells/rough-notation@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@sethgunnells/rough-notation/-/rough-notation-0.1.2.tgz#704f306ccec8bf69394ea8414d3cd95545fdd99f"
+  integrity sha512-P9ChpGgyn5U8Rzp3uZ0DNavyl1gcK/6mQoKBeGj4qHqOGo3E6nzUG1KZhlQoawdc9mbQgYFQykgOhlPyVa/ICA==
+
 "@sindresorhus/is@^0.14.0":
   version "0.14.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
