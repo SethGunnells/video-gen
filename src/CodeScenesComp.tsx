@@ -3,11 +3,12 @@ import { Sequence } from 'remotion';
 
 import './styles.css';
 
-import CodeScene from './components/CodeScene';
 import {
+  Annotation as AnnotationType,
   CodeScene as CodeSceneType
 } from './types';
 
+import Annotation from './components/Annotation';
 import CodeScene from './components/CodeScene';
 
 const scenes: CodeSceneType[] = [
@@ -47,6 +48,28 @@ _.get(character, 'stats.strength')`
   }
 ];
 
+const a: AnnotationType = {
+  code: `import _ from 'lodash'
+
+const character = {
+  name: 'Seth',
+  race: 'Elf',
+  stats: {
+    strength: 10,
+    intelligence: 18,
+    charisma: 12
+  }
+}
+
+_.get(character, 'stats.strength')`,
+  getNodes: ref =>
+    Array.from(
+      ref.current?.querySelectorAll(
+        'code > span:nth-child(n+29):nth-child(-n+31)'
+      ) ?? []
+    ),
+};
+
 const CodeScenesComp: React.FC = () => {
   return (
     <div style={{ flex: 1, backgroundColor: '#2e3440' }}>
@@ -55,6 +78,9 @@ const CodeScenesComp: React.FC = () => {
           <CodeScene {...scene} />
         </Sequence>
       ))}
+      <Sequence from={300} durationInFrames={Infinity} layout="none">
+        <Annotation {...a} />
+      </Sequence>
     </div>
   );
 };
