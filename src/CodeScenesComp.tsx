@@ -4,20 +4,19 @@ import { Sequence } from 'remotion';
 import './styles.css';
 
 import CodeScene from './components/CodeScene';
+import {
+  CodeScene as CodeSceneType
+} from './types';
 
-interface CodeSceneType {
-  introFrames: number;
-  newCode: string;
-  oldCode?: string;
-}
+import CodeScene from './components/CodeScene';
 
 const scenes: CodeSceneType[] = [
   {
-    introFrames: 30,
+    inSpeed: 30,
     newCode: "import _ from 'lodash'"
   },
   {
-    introFrames: 50,
+    inSpeed: 50,
     oldCode: `import _ from 'lodash'`,
     newCode: `
 const character = {
@@ -31,7 +30,7 @@ const character = {
 }`
   },
   {
-    introFrames: 30,
+    inSpeed: 30,
     oldCode: `import _ from 'lodash'
 
 const character = {

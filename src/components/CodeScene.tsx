@@ -1,25 +1,25 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { interpolate, useCurrentFrame, useVideoConfig, Easing } from 'remotion';
 
-import { Dimensions } from '../types';
+import { CodeScene as CodeSceneType, Dimensions } from '../types';
 
 import { getSceneDimensions } from '../codeSceneUtils';
 
 import Code from './Code';
 
-interface Props {
-  introFrames: number;
-  newCode: string;
-  oldCode?: string;
-}
+type Props = CodeSceneType;
 
-const CodeScene: React.FC<Props> = ({ introFrames, newCode, oldCode }) => {
+const CodeScene: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
+  { inSpeed = null, newCode = null, oldCode = null },
+  ref
+) => {
   const frame = useCurrentFrame();
-  const { scale, x, y } = useSceneDimensions(oldCode, newCode, introFrames);
-  const opacity = animate(frame, introFrames, [0, 1]);
+  const { scale, x, y } = useSceneDimensions(oldCode, newCode, inSpeed);
+  const opacity = animate(frame, inSpeed, [0, 1]);
 
   return (
     <div
+      ref={ref}
       style={{
         fontSize: 100,
         position: 'absolute',
@@ -28,24 +28,30 @@ const CodeScene: React.FC<Props> = ({ introFrames, newCode, oldCode }) => {
       }}
     >
       {oldCode && <Code opacity={1}>{oldCode}</Code>}
-      <Code opacity={opacity}>{newCode}</Code>
+      {newCode && <Code opacity={opacity}>{newCode}</Code>}
     </div>
   );
 };
 
-export default CodeScene;
+export default forwardRef<HTMLDivElement, Props>(CodeScene);
 
 /*********\
   HELPERS 
 \*********/
 
 const useSceneDimensions = (
-  oldCode: string | undefined,
-  newCode: string,
-  frames: number
+  oldCode: string | null,
+  newCode: string | null,
+  frames: number | null
 ): Dimensions => {
+  if (!oldCode && !newCode)
+    throw new Error('useSceneDimensions called with no code values');
+
   const frame = useCurrentFrame();
   const { height, width } = useVideoConfig();
+
+  if (!newCode && oldCode)
+    return getSceneDimensions(oldCode, height, width, height / 8);
 
   const now = getSceneDimensions(
     (oldCode ? oldCode + '\n' : '') + newCode,
@@ -65,9 +71,15 @@ const useSceneDimensions = (
 };
 
 const { out, ease } = Easing;
-const animate = (frame: number, end: number, outRange: [number, number]) =>
-  interpolate(frame, [0, end], outRange, {
-    easing: out(ease),
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp'
-  });
+const animate = (
+  frame: number,
+  end: number | null,
+  outRange: [number, number]
+) =>
+  end === null
+    ? outRange[1]
+    : interpolate(frame, [0, end], outRange, {
+        easing: out(ease),
+        extrapolateLeft: 'clamp',
+        extrapolateRight: 'clamp'
+      });
