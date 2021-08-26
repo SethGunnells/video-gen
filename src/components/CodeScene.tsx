@@ -1,11 +1,12 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useContext, useMemo } from 'react';
 import { interpolate, useCurrentFrame, useVideoConfig, Easing } from 'remotion';
 
-import { CodeScene as CodeSceneType, Dimensions } from '../types';
+import { CodeScene as CodeSceneType, Dimensions, ViewSize } from '../types';
 
 import { getSceneDimensions } from '../codeSceneUtils';
 
 import Code from './Code';
+import { SizeKeyContext } from '../CodeScenesComp';
 
 type Props = CodeSceneType;
 
@@ -44,24 +45,29 @@ const useSceneDimensions = (
   newCode: string | null,
   frames: number | null
 ): Dimensions => {
+  const frame = useCurrentFrame();
+  const { height, width } = useVideoConfig();
+  const sizeKey = useContext(SizeKeyContext);
+  const padding = height / 8;
+  const viewSize: ViewSize = { height, padding, width };
+
   if (!oldCode && !newCode)
     throw new Error('useSceneDimensions called with no code values');
 
-  const frame = useCurrentFrame();
-  const { height, width } = useVideoConfig();
+  const now = useMemo(() => {
+    return getSceneDimensions(
+      (oldCode ? oldCode + '\n' : '') + newCode,
+      sizeKey,
+      viewSize
+    );
+  }, [height, width, sizeKey, oldCode, newCode]);
 
-  if (!newCode && oldCode)
-    return getSceneDimensions(oldCode, height, width, height / 8);
+  const past = useMemo(() => {
+    if (!oldCode) return now;
+    return getSceneDimensions(oldCode, sizeKey, viewSize);
+  }, [height, width, sizeKey, oldCode, now]);
 
-  const now = getSceneDimensions(
-    (oldCode ? oldCode + '\n' : '') + newCode,
-    height,
-    width,
-    height / 8
-  );
-  const past = oldCode
-    ? getSceneDimensions(oldCode, height, width, height / 8)
-    : now;
+  if (!newCode && oldCode) return past;
 
   const scale = animate(frame, frames, [past.scale, now.scale]);
   const x = animate(frame, frames, [past.x, now.x]);

@@ -22,3 +22,14 @@ export interface Dimensions {
   x: number;
   y: number;
 }
+
+export interface SizeKey {
+  height: number;
+  width: number;
+}
+
+export interface ViewSize {
+  height: number;
+  padding: number;
+  width: number;
+}

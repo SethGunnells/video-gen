@@ -1,11 +1,12 @@
-import React from 'react';
-import { Sequence } from 'remotion';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { continueRender, delayRender, Sequence } from 'remotion';
 
 import './styles.css';
 
 import {
   Annotation as AnnotationType,
-  CodeScene as CodeSceneType
+  CodeScene as CodeSceneType,
+  SizeKey
 } from './types';
 
 import Annotation from './components/Annotation';
@@ -70,18 +71,47 @@ _.get(character, 'stats.strength')`,
     ),
 };
 
+export const SizeKeyContext = createContext<SizeKey>({ height: -Infinity, width: -Infinity })
+
 const CodeScenesComp: React.FC = () => {
+  const [handle] = useState(() => delayRender())
+  const [sizeKey, setSizeKey] = useState<{height: number, width: number}|null>(null)
+  
+  useEffect(() => {
+    // @ts-ignore
+    document.fonts.load('100px Fantasque Sans Mono').then(() => {
+      const pre = document.createElement('pre');
+      Object.assign(pre.style, {
+        fontFamily: 'Fantasque Sans Mono',
+        fontSize: '100px',
+        opacity: '0',
+        position: 'absolute'
+      });
+      pre.textContent = 'a';
+      document.body.append(pre);
+      const { height, width } = pre.getBoundingClientRect();
+      pre.remove();
+
+      continueRender(handle);
+      setSizeKey({ height, width })
+    })
+  }, [])
+
+  if (!sizeKey) return null
+
   return (
-    <div style={{ flex: 1, backgroundColor: '#2e3440' }}>
-      {scenes.map((scene, i) => (
-        <Sequence key={i} from={i * 100} durationInFrames={100} layout="none">
-          <CodeScene {...scene} />
+    <SizeKeyContext.Provider value={sizeKey}>
+      <div style={{ flex: 1, backgroundColor: '#2e3440' }}>
+        {scenes.map((scene, i) => (
+          <Sequence key={i} from={i * 100} durationInFrames={100} layout="none">
+            <CodeScene {...scene} />
+          </Sequence>
+        ))}
+        <Sequence from={300} durationInFrames={Infinity} layout="none">
+          <Annotation {...a} />
         </Sequence>
-      ))}
-      <Sequence from={300} durationInFrames={Infinity} layout="none">
-        <Annotation {...a} />
-      </Sequence>
-    </div>
+      </div>
+    </SizeKeyContext.Provider>
   );
 };
 

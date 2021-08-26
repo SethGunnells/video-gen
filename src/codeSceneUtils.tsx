@@ -1,72 +1,45 @@
-const FONT_SIZE_MAP: { [key: number]: { h: number; w: number } } = {};
-
-const createFontSizeMap = () => {
-  const div = document.createElement('div');
-  div.style.fontFamily = 'Fantasque Sans Mono';
-  div.style.position = 'absolute';
-  div.style.opacity = '0';
-  div.textContent = 'a';
-  document.body.appendChild(div);
-
-  if (Object.keys(FONT_SIZE_MAP).length > 0) {
-    div.style.fontSize = '100px';
-    const px100 = FONT_SIZE_MAP[100];
-    if (div.offsetHeight === px100.h && div.offsetWidth === px100.w) {
-      document.body.removeChild(div);
-      return;
-    }
-  }
-
-  for (let px = 10; px <= 100; px++) {
-    div.style.fontSize = `${px}px`;
-    FONT_SIZE_MAP[px] = { h: div.offsetHeight, w: div.offsetWidth };
-  }
-
-  document.body.removeChild(div);
-};
-
-const calculateDimensions = (
-  maxHeight: number,
-  maxWidth: number,
-  lines: string[]
-) => {
-  const widestLineLength = lines.reduce(
-    (result, line) => (line.length > result ? line.length : result),
-    0
-  );
-
-  let px = 100;
-  const calcH = () => FONT_SIZE_MAP[px].h * lines.length;
-  const calcW = () => FONT_SIZE_MAP[px].w * widestLineLength;
-  while (calcH() > maxHeight || calcW() > maxWidth) px--;
-  return { scale: px / 100, height: calcH(), width: calcW() };
-};
+import { Dimensions, SizeKey, ViewSize } from './types';
 
 const calculatePosition = (
-  viewHeight: number,
-  viewWidth: number,
+  viewSize: ViewSize,
   elemHeight: number,
   elemWidth: number
 ) => {
   return {
-    x: viewWidth / 2 - elemWidth / 2,
-    y: viewHeight / 2 - elemHeight / 2
+    x: viewSize.width / 2 - elemWidth / 2,
+    y: viewSize.height / 2 - elemHeight / 2
   };
+};
+
+const calculateSize = (
+  code: string,
+  sizeKey: SizeKey,
+  viewSize: ViewSize
+): { height: number; scale: number; width: number } => {
+  const maxHeight = viewSize.height - viewSize.padding * 2;
+  const maxWidth = viewSize.width - viewSize.padding * 2;
+
+  const lines = code.split('\n');
+  const height = lines.length * sizeKey.height;
+  const width = lines.reduce((max, line) => {
+    const width = line.length * sizeKey.width;
+    return width > max ? width : max;
+  }, -Infinity);
+
+  const fitHeight = maxHeight / height;
+  const fitWidth = maxWidth / width;
+  const scale = [fitHeight, fitWidth, 1].reduce((min, n) =>
+    n < min ? n : min
+  );
+  return { height: height * scale, scale, width: width * scale };
 };
 
 export const getSceneDimensions = (
   code: string,
-  height: number,
-  width: number,
-  padding: number
-) => {
-  createFontSizeMap();
-  const codeLines = code.split('\n');
-  const { scale, ...elem } = calculateDimensions(
-    height - padding * 2,
-    width - padding * 2,
-    codeLines
-  );
-  const position = calculatePosition(height, width, elem.height, elem.width);
+  sizeKey: SizeKey,
+  viewSize: ViewSize
+): Dimensions => {
+  const { height, scale, width } = calculateSize(code, sizeKey, viewSize);
+  const position = calculatePosition(viewSize, height, width);
   return { scale, ...position };
 };
