@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useEffect, useState } from 'react';
 import { continueRender, delayRender, Sequence } from 'remotion';
 
 import './styles.css';
@@ -9,18 +9,14 @@ import {
   SizeKey
 } from './types';
 
+import { buildCodeSceneData } from './codeSceneUtils';
+
 import Annotation from './components/Annotation';
 import CodeScene from './components/CodeScene';
 
-const scenes: CodeSceneType[] = [
-  {
-    inSpeed: 30,
-    newCode: "import _ from 'lodash'"
-  },
-  {
-    inSpeed: 50,
-    oldCode: `import _ from 'lodash'`,
-    newCode: `
+const scenes: (CodeSceneType|AnnotationType)[] = buildCodeSceneData([
+  { code: "import _ from 'lodash'", frame: 0, type: 'code' },
+  { code: `
 const character = {
   name: 'Seth',
   race: 'Elf',
@@ -29,47 +25,66 @@ const character = {
     intelligence: 18,
     charisma: 12
   }
-}`
-  },
-  {
-    inSpeed: 30,
-    oldCode: `import _ from 'lodash'
+}`, frame: 200, type: 'code' },
+  { frame: 400, getNodes: (ref) => Array.from(ref.current?.querySelectorAll('code > span:nth-child(n+11):nth-child(-n+13)') ?? []), style: 'highlight', type: 'annotation' },
+  { frame: 600, code: "_.get(character, 'stats.intelligence')", type: 'code' }
+])
 
-const character = {
-  name: 'Seth',
-  race: 'Elf',
-  stats: {
-    strength: 10,
-    intelligence: 18,
-    charisma: 12
-  }
-}`,
-    newCode: `
-_.get(character, 'stats.strength')`
-  }
-];
+// const scenes: (CodeSceneType|AnnotationType)[] = [
+//   {
+//     inSpeed: 30,
+//     newCode: "import _ from 'lodash'",
+//     type: 'code'
+//   },
+//   {
+//     inSpeed: 50,
+//     oldCode: `import _ from 'lodash'`,
+//     newCode: `
+// const character = {
+//   name: 'Seth',
+//   race: 'Elf',
+//   stats: {
+//     strength: 10,
+//     intelligence: 18,
+//     charisma: 12
+//   }
+// }`,
+//     type: 'code'
+//   },
+//   {
+//     code: `import _ from 'lodash'
 
-const a: AnnotationType = {
-  code: `import _ from 'lodash'
+// const character = {
+//   name: 'Seth',
+//   race: 'Elf',
+//   stats: {
+//     strength: 10,
+//     intelligence: 18,
+//     charisma: 12
+//   }
+// }`,
+//     getNodes: (ref) => Array.from(ref.current?.querySelectorAll('code > span:nth-child(n+11):nth-child(-n+13)') ?? []),
+//     style: 'highlight',
+//     type: 'annotation'
+//   },
+//   {
+//     inSpeed: 30,
+//     oldCode: `import _ from 'lodash'
 
-const character = {
-  name: 'Seth',
-  race: 'Elf',
-  stats: {
-    strength: 10,
-    intelligence: 18,
-    charisma: 12
-  }
-}
-
-_.get(character, 'stats.strength')`,
-  getNodes: ref =>
-    Array.from(
-      ref.current?.querySelectorAll(
-        'code > span:nth-child(n+29):nth-child(-n+31)'
-      ) ?? []
-    ),
-};
+// const character = {
+//   name: 'Seth',
+//   race: 'Elf',
+//   stats: {
+//     strength: 10,
+//     intelligence: 18,
+//     charisma: 12
+//   }
+// }`,
+//     newCode: `
+// _.get(character, 'stats.strength')`,
+//     type: 'code'
+//   }
+// ];
 
 export const SizeKeyContext = createContext<SizeKey>({ height: -Infinity, width: -Infinity })
 
@@ -103,13 +118,10 @@ const CodeScenesComp: React.FC = () => {
     <SizeKeyContext.Provider value={sizeKey}>
       <div style={{ flex: 1, backgroundColor: '#2e3440' }}>
         {scenes.map((scene, i) => (
-          <Sequence key={i} from={i * 100} durationInFrames={100} layout="none">
-            <CodeScene {...scene} />
+          <Sequence key={i} from={scene.frame} durationInFrames={200} layout="none">
+            { scene.type === 'annotation' ? <Annotation {...scene} /> : <CodeScene {...scene} /> }
           </Sequence>
         ))}
-        <Sequence from={300} durationInFrames={Infinity} layout="none">
-          <Annotation {...a} />
-        </Sequence>
       </div>
     </SizeKeyContext.Provider>
   );

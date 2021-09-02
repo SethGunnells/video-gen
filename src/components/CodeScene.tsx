@@ -8,7 +8,7 @@ import { getSceneDimensions } from '../codeSceneUtils';
 import Code from './Code';
 import { SizeKeyContext } from '../CodeScenesComp';
 
-type Props = CodeSceneType;
+type Props = Omit<CodeSceneType, 'frame' | 'type'>;
 
 const CodeScene: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
   { inSpeed = null, newCode = null, oldCode = null },

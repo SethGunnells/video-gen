@@ -13,7 +13,7 @@ import { Annotation as AnnotationType } from '../types';
 
 import CodeScene from './CodeScene';
 
-type Props = AnnotationType;
+type Props = Omit<AnnotationType, 'frame' | 'type'>;
 
 const Annotation: React.FC<Props> = ({
   code,
@@ -23,7 +23,7 @@ const Annotation: React.FC<Props> = ({
   outSpeed = 30,
   padding = 5,
   seed = 0,
-  type = 'underline'
+  style = 'underline'
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [annotation, setAnnotation] = useState<any>(null);
@@ -37,16 +37,16 @@ const Annotation: React.FC<Props> = ({
     const elems: HTMLElement[] = getNodes(ref);
     if (elems.length === 0) return;
 
-    if (type === 'highlight')
+    if (style === 'highlight')
       setColors(elems.map(e => e.style.color || '#eceff4'));
 
     const a = annotate(elems, {
       color,
       host: ref.current.parentElement,
-      iterations: type === 'highlight' ? 1 : 2,
+      iterations: style === 'highlight' ? 1 : 2,
       padding,
       seed: random(seed) * 2 ** 21 + 1,
-      type
+      type: style
     });
 
     a.show();
@@ -65,7 +65,7 @@ const Annotation: React.FC<Props> = ({
 
     const startOutroFrame = durationInFrames - outSpeed - 10;
 
-    if (type === 'highlight' && colors.length > 0)
+    if (style === 'highlight' && colors.length > 0)
       elems.forEach(
         (e, i) =>
           (e.style.color = interpolateColors(

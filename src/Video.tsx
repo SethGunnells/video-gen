@@ -16,7 +16,7 @@ export const RemotionVideo: React.FC = () => {
       <Composition
         id="CodeScenesComp"
         component={CodeScenesComp}
-        durationInFrames={400}
+        durationInFrames={800}
         fps={60}
         width={1920 * (process.env.NODE_ENV === 'development' ? 0.5 : 1)}
         height={1080 * (process.env.NODE_ENV === 'development' ? 0.5 : 1)}
