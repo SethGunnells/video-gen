@@ -30,62 +30,6 @@ const character = {
   { frame: 600, code: "_.get(character, 'stats.intelligence')", type: 'code' }
 ])
 
-// const scenes: (CodeSceneType|AnnotationType)[] = [
-//   {
-//     inSpeed: 30,
-//     newCode: "import _ from 'lodash'",
-//     type: 'code'
-//   },
-//   {
-//     inSpeed: 50,
-//     oldCode: `import _ from 'lodash'`,
-//     newCode: `
-// const character = {
-//   name: 'Seth',
-//   race: 'Elf',
-//   stats: {
-//     strength: 10,
-//     intelligence: 18,
-//     charisma: 12
-//   }
-// }`,
-//     type: 'code'
-//   },
-//   {
-//     code: `import _ from 'lodash'
-
-// const character = {
-//   name: 'Seth',
-//   race: 'Elf',
-//   stats: {
-//     strength: 10,
-//     intelligence: 18,
-//     charisma: 12
-//   }
-// }`,
-//     getNodes: (ref) => Array.from(ref.current?.querySelectorAll('code > span:nth-child(n+11):nth-child(-n+13)') ?? []),
-//     style: 'highlight',
-//     type: 'annotation'
-//   },
-//   {
-//     inSpeed: 30,
-//     oldCode: `import _ from 'lodash'
-
-// const character = {
-//   name: 'Seth',
-//   race: 'Elf',
-//   stats: {
-//     strength: 10,
-//     intelligence: 18,
-//     charisma: 12
-//   }
-// }`,
-//     newCode: `
-// _.get(character, 'stats.strength')`,
-//     type: 'code'
-//   }
-// ];
-
 export const SizeKeyContext = createContext<SizeKey>({ height: -Infinity, width: -Infinity })
 
 const CodeScenesComp: React.FC = () => {
